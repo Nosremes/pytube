@@ -49,6 +49,14 @@ class Caption:
         recompiles them into the "SubRip Subtitle" format.
         """
         return self.xml_caption_to_srt(self.xml_captions)
+    
+    def generate_list_captions(self) -> list:
+        """Generate a list containing dicts with the caption tracks information.
+
+        Takes the xml captions from :meth:`~pytube.Caption.xml_captions` and
+        recompiles them into a list with dics containing text,start,and end information.
+        """
+        return self.xml_caption_to_list(self.xml_captions)
 
     @staticmethod
     def float_to_srt_time_format(d: float) -> str:
@@ -99,7 +107,37 @@ class Caption:
             segments.append(line)
             index += 1
         return "\n".join(segments).strip()
-
+    
+    def xml_caption_to_list(selx,xml_captions:str) -> list:
+        """Convert xml caption tracks to a list of dicts with text,start,and end tracks information.
+        
+        :param str xml_captions
+            XML formatted caption tracks. 
+        """
+        segments = []
+        root = ElementTree.fromstring(xml_captions)
+        index = 0
+        for child in root.findall("body/p"):
+            if list(child) == []:
+                continue
+            try:
+                duration = float(child.attrib["d"])
+            except KeyError:
+                duration = 0.0
+            start = float(child.attrib["t"])
+            end = start + duration
+            sequence_number = index + 1  # convert from 0-indexed to 1.
+            setence = ""
+            # iter over s tags containing the words
+            for s in list(child):
+                text = s.text or ""
+                caption = unescape(text.replace("\n", " ").replace("  ", " "),)
+                setence += caption
+            line_dict = {"text":setence,"start":start,"end":end}
+            segments.append(line_dict)
+            index += 1
+        return segments
+    
     def download(
         self,
         title: str,
