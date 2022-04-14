@@ -108,7 +108,7 @@ class Caption:
             index += 1
         return "\n".join(segments).strip()
     
-    def xml_caption_to_list(selx,xml_captions:str) -> list:
+    def xml_caption_to_list(self,xml_captions:str) -> list:
         """Convert xml caption tracks to a list of dicts with text,start,and end tracks information.
         
         :param str xml_captions
@@ -133,7 +133,10 @@ class Caption:
                 text = s.text or ""
                 caption = unescape(text.replace("\n", " ").replace("  ", " "),)
                 setence += caption
-            line_dict = {"text":setence,"start":start,"end":end}
+            line_dict = {"text" : setence,
+                "start" : "{start}".format(start=self.float_to_srt_time_format(start)),
+                "end" : "{end}".format(end=self.float_to_srt_time_format(end))
+            }
             segments.append(line_dict)
             index += 1
         return segments
